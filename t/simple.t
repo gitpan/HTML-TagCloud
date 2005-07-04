@@ -1,6 +1,6 @@
 #!perl
 use strict;
-use Test::More tests => 8;
+use Test::More tests => 11;
 use_ok('HTML::TagCloud');
 
 my $cloud = HTML::TagCloud->new;
@@ -16,7 +16,19 @@ foreach my $tag (keys %$tags) {
 my $css = $cloud->css;
 is(lines($css), 50);
 
-my $html = $cloud->html(5);
+my $html = $cloud->html(0);
+is($html, "");
+
+$html = $cloud->html(1);
+is($html, q{<span class="tagcloud24"><a href="/show/florida">florida</a></span>
+});
+
+$html = $cloud->html(2);
+is($html, q{<span class="tagcloud24"><a href="/show/florida">florida</a></span>
+<span class="tagcloud0"><a href="/show/tanja">tanja</a></span>
+});
+
+$html = $cloud->html(5);
 is(lines($html), 5);
 is($html, q{<span class="tagcloud24"><a href="/show/florida">florida</a></span>
 <span class="tagcloud0"><a href="/show/fort">fort</a></span>
@@ -27,13 +39,13 @@ is($html, q{<span class="tagcloud24"><a href="/show/florida">florida</a></span>
 
 $html = $cloud->html_and_css(5);
 is(lines($html), 56);
-print $html;
 
 $html = $cloud->html(20);
 is(lines($html), 20);
 
 $html = $cloud->html;
 is(lines($html), 349);
+
 
 sub tags {
   return {

@@ -1,6 +1,6 @@
 package HTML::TagCloud;
 use strict;
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 sub new {
   my $class = shift;
@@ -35,18 +35,25 @@ sub html {
   my $urls   = $self->{urls}; 
   my @tags = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
 
-  @tags = splice(@tags, 0, $limit) if $limit;
+  @tags = splice(@tags, 0, $limit) if defined $limit;
+
+  if (scalar(@tags) == 0) {
+    return "";
+  } elsif (scalar(@tags) == 1) {
+    my $tag = $tags[0];
+    my $url = $urls->{$tag};
+    return qq{<span class="tagcloud24"><a href="$url">$tag</a></span>\n};
+  }
 
   my $min = sqrt($counts->{$tags[-1]});
   my $max = sqrt($counts->{$tags[0]});
-  my $factor = (24 / ($max-$min));
+  my $factor = 24 / ($max - $min);
 
 #  warn "min $min - max $max ($factor)";
 #  warn(($min - $min) * $factor);
 #  warn(($max - $min) * $factor);
 
-
-  my $html;
+  my $html = "";
   foreach my $tag (sort @tags) {
     my $count = $counts->{$tag};
     my $url   = $urls->{$tag};
