@@ -1,6 +1,6 @@
 #!perl
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 12;
 use_ok('HTML::TagCloud');
 
 my $cloud = HTML::TagCloud->new;
@@ -46,6 +46,16 @@ is(lines($html), 20);
 $html = $cloud->html;
 is(lines($html), 349);
 
+$cloud = HTML::TagCloud->new;
+$cloud->add("a", "a.html", 10);
+$cloud->add("b", "b.html", 10);
+$cloud->add("c", "c.html", 10);
+
+$html = $cloud->html();
+is($html, q{<span class="tagcloud24"><a href="a.html">a</a></span>
+<span class="tagcloud24"><a href="b.html">b</a></span>
+<span class="tagcloud24"><a href="c.html">c</a></span>
+});
 
 sub tags {
   return {

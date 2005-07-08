@@ -1,8 +1,12 @@
 CHANGES file for HTML::TagCloud:
 
+0.31 Fri Jul  8 22:46:22 BST 2005
+  - fix division by zero bug when all tags have the same count
+    (spotted by glasser)
+
 0.30 Mon Jul  4 13:49:13 BST 2005
   - fix division by zero bug when there is only one tag (spotted by
-  marcus)
+    marcus)
 
 0.29 Tue Jun 28 22:35:38 BST 2005
   - first release (prompted by Jesse Vincent)

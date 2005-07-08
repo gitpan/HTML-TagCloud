@@ -1,6 +1,6 @@
 package HTML::TagCloud;
 use strict;
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 sub new {
   my $class = shift;
@@ -47,7 +47,15 @@ sub html {
 
   my $min = sqrt($counts->{$tags[-1]});
   my $max = sqrt($counts->{$tags[0]});
-  my $factor = 24 / ($max - $min);
+  my $factor;
+  
+  # special case all tags having the same count
+  if ($max - $min == 0) {
+    $min = $min - 24;
+    $factor = 1;
+  } else {
+    $factor = 24 / ($max - $min);
+  }
 
 #  warn "min $min - max $max ($factor)";
 #  warn(($min - $min) * $factor);
