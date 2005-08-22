@@ -2,12 +2,12 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
-          'PL_FILES' => {},
-          'INSTALLDIRS' => 'site',
           'NAME' => 'HTML::TagCloud',
           'VERSION_FROM' => 'lib/HTML/TagCloud.pm',
           'PREREQ_PM' => {
                            'Test::More' => '0'
-                         }
+                         },
+          'INSTALLDIRS' => 'site',
+          'PL_FILES' => {}
         )
 ;

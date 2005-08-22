@@ -14,37 +14,39 @@ foreach my $tag (keys %$tags) {
 }
 
 my $css = $cloud->css;
-is(lines($css), 50);
+is(lines($css), 55);
 
 my $html = $cloud->html(0);
 is($html, "");
 
 $html = $cloud->html(1);
-is($html, q{<span class="tagcloud24"><a href="/show/florida">florida</a></span>
+is($html, q{<div id="htmltagcloud"><span class="tagcloud1"><a href="/show/florida">florida</a></span></div>
 });
 
 $html = $cloud->html(2);
-is($html, q{<span class="tagcloud24"><a href="/show/florida">florida</a></span>
+is($html, q{<div id="htmltagcloud">
+<span class="tagcloud2"><a href="/show/florida">florida</a></span>
 <span class="tagcloud0"><a href="/show/tanja">tanja</a></span>
-});
+</div>});
 
 $html = $cloud->html(5);
-is(lines($html), 5);
-is($html, q{<span class="tagcloud24"><a href="/show/florida">florida</a></span>
+is(lines($html), 7);
+is($html, q{<div id="htmltagcloud">
+<span class="tagcloud5"><a href="/show/florida">florida</a></span>
 <span class="tagcloud0"><a href="/show/fort">fort</a></span>
-<span class="tagcloud7"><a href="/show/london">london</a></span>
-<span class="tagcloud12"><a href="/show/madagascar">madagascar</a></span>
-<span class="tagcloud17"><a href="/show/tanja">tanja</a></span>
-});
+<span class="tagcloud1"><a href="/show/london">london</a></span>
+<span class="tagcloud2"><a href="/show/madagascar">madagascar</a></span>
+<span class="tagcloud3"><a href="/show/tanja">tanja</a></span>
+</div>});
 
 $html = $cloud->html_and_css(5);
-is(lines($html), 56);
+is(lines($html), 63);
 
 $html = $cloud->html(20);
-is(lines($html), 20);
+is(lines($html), 22);
 
 $html = $cloud->html;
-is(lines($html), 349);
+is(lines($html), 351);
 
 $cloud = HTML::TagCloud->new;
 $cloud->add("a", "a.html", 10);
@@ -52,10 +54,11 @@ $cloud->add("b", "b.html", 10);
 $cloud->add("c", "c.html", 10);
 
 $html = $cloud->html();
-is($html, q{<span class="tagcloud24"><a href="a.html">a</a></span>
-<span class="tagcloud24"><a href="b.html">b</a></span>
-<span class="tagcloud24"><a href="c.html">c</a></span>
-});
+is($html, q{<div id="htmltagcloud">
+<span class="tagcloud3"><a href="a.html">a</a></span>
+<span class="tagcloud3"><a href="b.html">b</a></span>
+<span class="tagcloud3"><a href="c.html">c</a></span>
+</div>});
 
 sub tags {
   return {

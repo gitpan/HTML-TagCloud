@@ -1,6 +1,6 @@
 package HTML::TagCloud;
 use strict;
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 sub new {
   my $class = shift;
@@ -20,10 +20,15 @@ sub add {
 
 sub css {
   my $self = @_;
-  my $css;
+  my $css = q(
+#htmltagcloud {
+  text-align:  center; 
+  line-height: 16px; 
+}
+);
   foreach my $level (0..24) {
     my $font = 12 + $level;
-    $css .= "span.tagcloud$level {font-size: ${font}px;}\n";
+    $css .= "span.tagcloud$level { font-size: ${font}px;}\n";
     $css .= "span.tagcloud$level a {text-decoration: none;}\n";
   }
   return $css;
@@ -36,17 +41,18 @@ sub html {
   my @tags = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
 
   @tags = splice(@tags, 0, $limit) if defined $limit;
+  my $ntags = scalar(@tags);
 
-  if (scalar(@tags) == 0) {
+  if ($ntags == 0) {
     return "";
-  } elsif (scalar(@tags) == 1) {
+  } elsif ($ntags == 1) {
     my $tag = $tags[0];
     my $url = $urls->{$tag};
-    return qq{<span class="tagcloud24"><a href="$url">$tag</a></span>\n};
+    return qq{<div id="htmltagcloud"><span class="tagcloud1"><a href="$url">$tag</a></span></div>\n};
   }
 
-  my $min = sqrt($counts->{$tags[-1]});
-  my $max = sqrt($counts->{$tags[0]});
+  my $min = log($counts->{$tags[-1]});
+  my $max = log($counts->{$tags[0]});
   my $factor;
   
   # special case all tags having the same count
@@ -55,6 +61,10 @@ sub html {
     $factor = 1;
   } else {
     $factor = 24 / ($max - $min);
+  }
+  
+  if ($ntags < 24) {
+    $factor *= ($ntags/24);
   }
 
 #  warn "min $min - max $max ($factor)";
@@ -65,15 +75,17 @@ sub html {
   foreach my $tag (sort @tags) {
     my $count = $counts->{$tag};
     my $url   = $urls->{$tag};
-    my $level = int((sqrt($count) - $min) * $factor);
+    my $level = int((log($count) - $min) * $factor);
     $html .=  qq{<span class="tagcloud$level"><a href="$url">$tag</a></span>\n};
-  }  
+  }
+  $html = qq{<div id="htmltagcloud">
+$html</div>};
   return $html;
 }
 
 sub html_and_css {
   my($self, $limit) = @_;
-  my $html = "<style>\n" . $self->css . "</style>";
+  my $html = qq{<style type="text/css">\n} . $self->css . "</style>";
   $html .= $self->html($limit);
   return $html;
 }
