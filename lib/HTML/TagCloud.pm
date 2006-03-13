@@ -1,12 +1,15 @@
 package HTML::TagCloud;
 use strict;
-our $VERSION = '0.32';
+use warnings;
+our $VERSION = '0.33';
 
 sub new {
   my $class = shift;
   my $self  = {
     counts => {},
     urls   => {},
+    levels => 24,
+    @_
   };
   bless $self, $class;
   return $self;
@@ -19,14 +22,14 @@ sub add {
 }
 
 sub css {
-  my $self = @_;
+  my ($self) = @_;
   my $css = q(
 #htmltagcloud {
   text-align:  center; 
   line-height: 16px; 
 }
 );
-  foreach my $level (0..24) {
+  foreach my $level (0 .. $self->{levels}) {
     my $font = 12 + $level;
     $css .= "span.tagcloud$level { font-size: ${font}px;}\n";
     $css .= "span.tagcloud$level a {text-decoration: none;}\n";
@@ -34,22 +37,14 @@ sub css {
   return $css;
 }
 
-sub html {
+sub tags {
   my($self, $limit) = @_;
   my $counts = $self->{counts};
   my $urls   = $self->{urls}; 
   my @tags = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
-
   @tags = splice(@tags, 0, $limit) if defined $limit;
-  my $ntags = scalar(@tags);
 
-  if ($ntags == 0) {
-    return "";
-  } elsif ($ntags == 1) {
-    my $tag = $tags[0];
-    my $url = $urls->{$tag};
-    return qq{<div id="htmltagcloud"><span class="tagcloud1"><a href="$url">$tag</a></span></div>\n};
-  }
+  return unless scalar @tags;
 
   my $min = log($counts->{$tags[-1]});
   my $max = log($counts->{$tags[0]});
@@ -57,14 +52,38 @@ sub html {
   
   # special case all tags having the same count
   if ($max - $min == 0) {
-    $min = $min - 24;
+    $min = $min - $self->{levels};
     $factor = 1;
   } else {
-    $factor = 24 / ($max - $min);
+    $factor = $self->{levels} / ($max - $min);
   }
   
-  if ($ntags < 24) {
-    $factor *= ($ntags/24);
+  if (scalar @tags < $self->{levels} ) {
+    $factor *= (scalar @tags/$self->{levels});
+  }
+  my @tag_items;
+  foreach my $tag (sort @tags) {
+    my $tag_item;
+    $tag_item->{name} = $tag;
+    $tag_item->{count} = $counts->{$tag};
+    $tag_item->{url}   = $urls->{$tag};
+    $tag_item->{level} = int((log($tag_item->{count}) - $min) * $factor);
+    push @tag_items,$tag_item;
+  }
+  return @tag_items;
+}
+
+sub html {
+  my($self, $limit) = @_;
+  my @tags=$self->tags($limit);
+
+  my $ntags = scalar(@tags);
+  if ($ntags == 0) {
+    return "";
+  } elsif ($ntags == 1) {
+    my $tag = $tags[0];
+    return qq{<div id="htmltagcloud"><span class="tagcloud1"><a href="}.
+	$tag->{url}.qq{">}.$tag->{name}.qq{</a></span></div>\n};
   }
 
 #  warn "min $min - max $max ($factor)";
@@ -72,11 +91,9 @@ sub html {
 #  warn(($max - $min) * $factor);
 
   my $html = "";
-  foreach my $tag (sort @tags) {
-    my $count = $counts->{$tag};
-    my $url   = $urls->{$tag};
-    my $level = int((log($count) - $min) * $factor);
-    $html .=  qq{<span class="tagcloud$level"><a href="$url">$tag</a></span>\n};
+  foreach my $tag (@tags) {
+    $html .=  qq{<span class="tagcloud}.$tag->{level}.qq{"><a href="}.$tag->{url}.
+	      qq{">}.$tag->{name}.qq{</a></span>\n};
   }
   $html = qq{<div id="htmltagcloud">
 $html</div>};
@@ -126,9 +143,11 @@ or use your own.
 
 =head2 new
 
-The constructor takes no arguments:
+The constructor takes one optional argument:
 
-  my $cloud = HTML::TagCloud->new;
+  my $cloud = HTML::TagCloud->new(levels=>10);
+
+if not provided, levels defaults to 24
 
 =head1 METHODS
 
@@ -140,6 +159,12 @@ and its count:
   $cloud->add($tag1, $url1, $count1);
   $cloud->add($tag2, $url2, $count2);
   $cloud->add($tag3, $url3, $count3);
+
+
+=head2 tags($limit)
+
+Returns a list of hashrefs representing each tag in the cloud, sorted by
+alphabet. Each tag has the following keys: name, count, url and level.
 
 =head2 css
 
@@ -171,7 +196,7 @@ Leon Brocard, C<< <acme@astray.com> >>.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2005, Leon Brocard
+Copyright (C) 2005-6, Leon Brocard
 
 This module is free software; you can redistribute it or modify it
 under the same terms as Perl itself.

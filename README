@@ -25,9 +25,11 @@ DESCRIPTION
 
 CONSTRUCTOR
   new
-    The constructor takes no arguments:
+    The constructor takes one optional argument:
 
-      my $cloud = HTML::TagCloud->new;
+      my $cloud = HTML::TagCloud->new(levels=>10);
+
+    if not provided, leves defaults to 24
 
 METHODS
   add
@@ -37,6 +39,10 @@ METHODS
       $cloud->add($tag1, $url1, $count1);
       $cloud->add($tag2, $url2, $count2);
       $cloud->add($tag3, $url3, $count3);
+
+  tags($limit)
+    Returns a list of hashrefs representing each tag in the cloud, sorted by
+    alphabet. each tag has the following keys; name, count, url and level.
 
   css
     This returns the CSS that will format the HTML returned by the html()

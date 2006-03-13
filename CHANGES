@@ -1,5 +1,11 @@
 CHANGES file for HTML::TagCloud:
 
+0.33 Mon Mar 13 20:26:36 GMT 2006
+  - add a 'tags' method that extracts most of the logic from the html
+    method. It also adds support for setting levels as a parameter to the
+    constructor.  It defaults to the before-hardcoded 24.
+    (thanks to Marcus Ramberg)
+
 0.32 Mon Aug 22 16:32:29 BST 2005
   - make html_and_css have type="text/css" in the script tag
     (patch by Dean Wilson)
