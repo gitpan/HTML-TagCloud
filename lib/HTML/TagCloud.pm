@@ -1,7 +1,7 @@
 package HTML::TagCloud;
 use strict;
 use warnings;
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 sub new {
   my $class = shift;
@@ -26,7 +26,7 @@ sub css {
   my $css = q(
 #htmltagcloud {
   text-align:  center; 
-  line-height: 16px; 
+  line-height: 1; 
 }
 );
   foreach my $level (0 .. $self->{levels}) {

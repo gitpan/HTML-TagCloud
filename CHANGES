@@ -1,5 +1,9 @@
 CHANGES file for HTML::TagCloud:
 
+0.34 Tue Nov  7 21:00:33 GMT 2006
+  - Internet Explorer fix, which addresses issues with Japanese text
+    (thanks to Tatsuhiko Miyagawa)
+
 0.33 Mon Mar 13 20:26:36 GMT 2006
   - add a 'tags' method that extracts most of the logic from the html
     method. It also adds support for setting levels as a parameter to the
