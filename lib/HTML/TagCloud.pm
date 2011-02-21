@@ -1,14 +1,15 @@
 package HTML::TagCloud;
 use strict;
 use warnings;
-our $VERSION = '0.34';
+our $VERSION = '0.36';
 
 sub new {
   my $class = shift;
   my $self  = {
-    counts => {},
-    urls   => {},
-    levels => 24,
+    counts                    => {},
+    urls                      => {},
+    levels                    => 24,
+    distinguish_adjacent_tags => 0,
     @_
   };
   bless $self, $class;
@@ -21,6 +22,11 @@ sub add {
   $self->{urls}->{$tag} = $url;
 }
 
+sub add_static {
+    my ($self, $tag, $count) = @_;
+    $self->{counts}->{$tag} = $count;
+}
+
 sub css {
   my ($self) = @_;
   my $css = q(
@@ -30,11 +36,23 @@ sub css {
 }
 );
   foreach my $level (0 .. $self->{levels}) {
-    my $font = 12 + $level;
-    $css .= "span.tagcloud$level { font-size: ${font}px;}\n";
-    $css .= "span.tagcloud$level a {text-decoration: none;}\n";
+    if ( $self->{distinguish_adjacent_tags} ) {
+      $css .= $self->_css_for_tag($level, 'even');
+      $css .= $self->_css_for_tag($level, 'odd');
+    } else {
+      $css .= $self->_css_for_tag($level, q{});
+    }
   }
   return $css;
+}
+
+sub _css_for_tag {
+    my ($self, $level, $subclass) = @_;
+    my $font = 12 + $level;
+    return <<"END_OF_TAG";
+span.tagcloud${level}${subclass} {font-size: ${font}px;}
+span.tagcloud${level}${subclass} a {text-decoration: none;}
+END_OF_TAG
 }
 
 sub tags {
@@ -82,8 +100,8 @@ sub html {
     return "";
   } elsif ($ntags == 1) {
     my $tag = $tags[0];
-    return qq{<div id="htmltagcloud"><span class="tagcloud1"><a href="}.
-	$tag->{url}.qq{">}.$tag->{name}.qq{</a></span></div>\n};
+    my $span = $self->_format_span(@{$tag}{qw(name url)}, 1, 1);
+    return qq{<div id="htmltagcloud">$span</div>\n};
   }
 
 #  warn "min $min - max $max ($factor)";
@@ -91,9 +109,11 @@ sub html {
 #  warn(($max - $min) * $factor);
 
   my $html = "";
+  my $is_even = 1;
   foreach my $tag (@tags) {
-    $html .=  qq{<span class="tagcloud}.$tag->{level}.qq{"><a href="}.$tag->{url}.
-	      qq{">}.$tag->{name}.qq{</a></span>\n};
+    my $span = $self->_format_span(@{$tag}{qw(name url level)}, $is_even);
+    $html .= "$span\n";
+    $is_even = !$is_even;
   }
   $html = qq{<div id="htmltagcloud">
 $html</div>};
@@ -107,6 +127,24 @@ sub html_and_css {
   return $html;
 }
 
+sub _format_span {
+  my ($self, $name, $url, $level, $is_even) = @_;
+  my $subclass = q{};
+  if ( $self->{distinguish_adjacent_tags} ) {
+      $subclass = $is_even ? 'even' : 'odd';
+  }
+  my $span_class = qq{tagcloud$level$subclass};
+  my $span = qq{<span class="$span_class">};
+  if (defined $url) {
+    $span .= qq{<a href="$url">};
+  }
+  $span .= $name;
+  if (defined $url) {
+    $span .= qq{</a>};
+  }
+  $span .= qq{</span>};
+}
+
 1;
 
 __END__
@@ -117,11 +155,18 @@ HTML::TagCloud - Generate An HTML Tag Cloud
 
 =head1 SYNOPSIS
 
+  # A cloud with tags that link to other web pages.
   my $cloud = HTML::TagCloud->new;
   $cloud->add($tag1, $url1, $count1);
   $cloud->add($tag2, $url2, $count2);
   $cloud->add($tag3, $url3, $count3);
   my $html = $cloud->html_and_css(50);
+
+  # A cloud with tags that do not link to other web pages.
+  my $cloud = HTML::TagCloud->new;
+  $cloud->add_static($tag1, $count1);
+  $cloud->add_static($tag2, $count2);
+  $cloud->add_static($tag3, $count3);
   
 =head1 DESCRIPTION
 
@@ -143,11 +188,18 @@ or use your own.
 
 =head2 new
 
-The constructor takes one optional argument:
+The constructor takes two optional arguments:
 
   my $cloud = HTML::TagCloud->new(levels=>10);
 
 if not provided, levels defaults to 24
+
+  my $cloud = HTML::TagCloud->new(distinguish_adjacent_tags=>1);
+
+If distinguish_adjacent_tags is true HTML::TagCloud will use different CSS
+classes for adjacent tags in order to be able to make it easier to
+distinguish adjacent multi-word tags.  If not specified, this parameter
+defaults to a false value.
 
 =head1 METHODS
 
@@ -160,6 +212,13 @@ and its count:
   $cloud->add($tag2, $url2, $count2);
   $cloud->add($tag3, $url3, $count3);
 
+=head2 add_static
+
+This module adds a tag that does not link to another web page into the
+cloud.  You pass in the tag name and its count:
+
+  $cloud->add_static($tag1, $count1);
+  $cloud->add_static($tag2, $count2);
 
 =head2 tags($limit)
 
