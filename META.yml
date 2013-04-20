@@ -4,7 +4,7 @@ author:
   - 'Leon Brocard, C<< <acme@astray.com> >>.'
 configure_requires:
   Module::Build: 0.36
-generated_by: 'Module::Build version 0.3607'
+generated_by: 'Module::Build version 0.3603'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -13,9 +13,9 @@ name: HTML-TagCloud
 provides:
   HTML::TagCloud:
     file: lib/HTML/TagCloud.pm
-    version: 0.37
+    version: 0.38
 requires:
   Test::More: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.37
+version: 0.38
